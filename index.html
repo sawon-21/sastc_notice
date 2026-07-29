@@ -5,6 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SASTC Smart Notice Board</title>
 
+  <!-- PWA & Mobile Optimization Meta Tags -->
+  <meta name="theme-color" content="#0b1329" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="SASTC Notice" />
+  <meta name="description" content="SASTC Smart Notice Board WebApp for SASTC, CSE, AG, and BBA departments." />
+
+  <!-- Embedded Web App Manifest for PWA Installability -->
+  <link rel="manifest" href='data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22SASTC%20Smart%20Notice%20Board%22%2C%22short_name%22%3A%22SASTC%20Notice%22%2C%22description%22%3A%22Smart%20Notice%20Board%20WebApp%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230b1329%22%2C%22theme_color%22%3A%22%232563eb%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fi.ibb.co.com%2F9mb1JYmX%2Fimages-3.jpg%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fjpeg%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Fi.ibb.co.com%2F9mb1JYmX%2Fimages-3.jpg%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fjpeg%22%7D%5D%7D' />
+  <link rel="apple-touch-icon" href="https://i.ibb.co.com/9mb1JYmX/images-3.jpg" />
+
   <!-- Google Fonts: Inter & Noto Sans Bengali -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -58,7 +70,7 @@
     header {
       background: linear-gradient(135deg, #0b1329 0%, #1e293b 100%);
       color: #ffffff;
-      padding: 28px 20px;
+      padding: 24px 20px;
       border-bottom: 3px solid var(--primary);
       box-shadow: 0 4px 25px rgba(0, 0, 0, 0.12);
     }
@@ -100,7 +112,7 @@
     }
 
     .title-area h1 {
-      font-size: 21px;
+      font-size: 20px;
       font-weight: 700;
       letter-spacing: -0.3px;
       display: flex;
@@ -130,10 +142,48 @@
       text-decoration: underline;
     }
 
+    /* PWA Install Button */
+    .btn-install {
+      background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+      color: #ffffff;
+      border: none;
+      padding: 9px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+      transition: all 0.2s ease;
+    }
+
+    .btn-install:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    }
+
     .container {
       max-width: 920px;
       margin: 0 auto;
       padding: 24px 20px 40px;
+    }
+
+    /* Offline Status Banner */
+    .offline-banner {
+      background: #fef3c7;
+      border: 1px solid #fde68a;
+      color: #92400e;
+      padding: 10px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: var(--shadow-sm);
     }
 
     .controls {
@@ -622,10 +672,21 @@
           </p>
         </div>
       </div>
+
+      <!-- PWA Install Button -->
+      <button type="button" id="installBtn" class="btn-install" style="display: none;">
+        <i class="fa-solid fa-download"></i> Install App
+      </button>
     </div>
   </header>
 
   <div class="container">
+    <!-- Offline Indicator Banner -->
+    <div id="offlineBanner" class="offline-banner" style="display: none;">
+      <i class="fa-solid fa-wifi"></i>
+      <span>Offline Mode — Showing cached notices & routines</span>
+    </div>
+
     <div class="controls">
       <div class="search-wrapper" role="search" aria-label="Search notices">
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
@@ -642,7 +703,7 @@
       </div>
     </div>
 
-    <!-- Filter Tabs -->
+    <!-- Department Navigation Tabs -->
     <div class="dept-tabs" id="deptTabs" aria-label="Department filters">
       <button type="button" class="dept-btn" data-dept="RESULT" aria-pressed="false">
         <i class="fa-solid fa-square-poll-vertical"></i> RESULT
@@ -732,6 +793,87 @@
     const noticeList = document.getElementById("noticeList");
     const noticeCount = document.getElementById("noticeCount");
     const deptButtons = document.querySelectorAll(".dept-btn");
+    const offlineBanner = document.getElementById("offlineBanner");
+
+    /* Service Worker Registration (via Blob URL for pure Single-File PWA) */
+    if ('serviceWorker' in navigator) {
+      const swCode = `
+        const CACHE_NAME = 'sastc-notice-v3';
+        const ASSETS = [
+          'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap',
+          'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
+        ];
+
+        self.addEventListener('install', (e) => {
+          e.waitUntil(
+            caches.open(CACHE_NAME).then(c => c.addAll(ASSETS)).catch(() => {})
+          );
+          self.skipWaiting();
+        });
+
+        self.addEventListener('activate', (e) => {
+          e.waitUntil(
+            caches.keys().then(keys => Promise.all(keys.map(k => k !== CACHE_NAME && caches.delete(k))))
+          );
+          self.clients.claim();
+        });
+
+        self.addEventListener('fetch', (e) => {
+          if (e.request.method !== 'GET') return;
+          e.respondWith(
+            caches.match(e.request).then(cached => {
+              const fetchPromise = fetch(e.request).then(networkRes => {
+                if (networkRes && networkRes.status === 200) {
+                  const clone = networkRes.clone();
+                  caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+                }
+                return networkRes;
+              }).catch(() => cached);
+              return cached || fetchPromise;
+            })
+          );
+        });
+      `;
+      try {
+        const blob = new Blob([swCode], { type: 'application/javascript' });
+        const swUrl = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(swUrl).catch(() => {});
+      } catch (err) {}
+    }
+
+    /* PWA Install Prompt Handler */
+    let deferredPrompt;
+    const installBtn = document.getElementById("installBtn");
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      if (installBtn) installBtn.style.display = "inline-flex";
+    });
+
+    if (installBtn) {
+      installBtn.addEventListener("click", async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === "accepted") {
+          installBtn.style.display = "none";
+        }
+        deferredPrompt = null;
+      });
+    }
+
+    /* Network Status Tracking */
+    function updateOnlineStatus() {
+      if (!navigator.onLine) {
+        if (offlineBanner) offlineBanner.style.display = "flex";
+      } else {
+        if (offlineBanner) offlineBanner.style.display = "none";
+      }
+    }
+    window.addEventListener("online", updateOnlineStatus);
+    window.addEventListener("offline", updateOnlineStatus);
+    updateOnlineStatus();
 
     function escapeHTML(str) {
       return String(str ?? "")
@@ -932,7 +1074,7 @@
       }).join("");
     }
 
-    // Modal & Action Handlers
+    /* Modal & PDF Handlers */
     function openPdfModal(url, title) {
       const modal = document.getElementById("pdfModal");
       const pdfFrame = document.getElementById("pdfFrame");
@@ -1079,7 +1221,7 @@
       ];
     }
 
-    // Attach Event Listeners
+    /* Event Listeners */
     deptButtons.forEach(btn => {
       btn.addEventListener("click", () => setDeptFilter(btn.dataset.dept));
     });
@@ -1146,7 +1288,7 @@
 
       renderNotices();
     }).catch(err => {
-      console.warn("External API fetch failed; using current cached or fallback notices.", err);
+      console.warn("External API fetch failed; using cached/fallback data.", err);
       if (noticesData.length === 0) noticesData = getFallbackNoticesData();
       if (resultsData.length === 0) resultsData = getFallbackResultsData();
       renderNotices();
