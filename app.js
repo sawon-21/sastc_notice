@@ -75,6 +75,9 @@ document.addEventListener("DOMContentLoaded", () => {
   // Set initial filter tab and render
   setDeptFilter(activeDept);
 
+  // Initialize AI Chatbot Module
+  initChatbotModule();
+
   // Fetch live API data in background
   fetchLiveData().then(live => {
     if (live.noticesData) noticesData = live.noticesData;
@@ -287,101 +290,124 @@ function initEventListeners() {
   }
 }
 
+/* ==========================================================================
+   AI CHATBOT MODULE (GEMINI API INTEGRATION)
+   ========================================================================== */
 
+function initChatbotModule() {
+  const GEMINI_API_KEY = "AQ.Ab8RN6LjXW83mLjqWXXL42kWQbkDKdaQ76ukKY17JRSSbmhUTA";
+  const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
 
-
-// 1. Configuration
-const GEMINI_API_KEY = "AQ.Ab8RN6LjXW83mLjqWXXL42kWQbkDKdaQ76ukKY17JRSSbmhUTA"; // আপনার Gemini API Key দিন
-const API_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`;
-
-const SYSTEM_INSTRUCTION = `You are the official AI Assistant for "SASTC Portal (HSTU Sync)". Your job is to help HSTU students find relevant university notices based on the notice context provided to you.
+  const SYSTEM_INSTRUCTION = `You are the official AI Assistant for "SASTC Portal (HSTU Sync)". Your job is to help HSTU students find relevant university notices based on the notice context provided to you.
 Rules:
 1. Language: Always respond in polite Bengali.
 2. Accuracy: Use ONLY the provided notice data/context to answer. Never invent dates or details.
-3. Concise Summary: Give a 1-2 sentence direct answer highlighting key details.
+3. Concise Summary: Give a 1-2 sentence direct answer highlighting key details (e.g., dates, batch, fees).
 4. Fallback: If no relevant notice is found, say: "দুঃখিত, এই সংক্রান্ত কোনো নোটিশ পোর্টালে পাওয়া যায়নি।"`;
 
-// 2. DOM Elements
-const toggleBtn = document.getElementById("chat-toggle-btn");
-const closeBtn = document.getElementById("chat-close-btn");
-const chatWindow = document.getElementById("chat-window");
-const sendBtn = document.getElementById("chat-send-btn");
-const chatInput = document.getElementById("chat-input");
-const messagesContainer = document.getElementById("chat-messages");
+  const toggleBtn = document.getElementById("chat-toggle-btn");
+  const closeBtn = document.getElementById("chat-close-btn");
+  const chatWindow = document.getElementById("chat-window");
+  const sendBtn = document.getElementById("chat-send-btn");
+  const chatInput = document.getElementById("chat-input");
+  const messagesContainer = document.getElementById("chat-messages");
 
-// 3. UI Toggle Handlers
-toggleBtn.addEventListener("click", () => chatWindow.classList.toggle("chat-hidden"));
-closeBtn.addEventListener("click", () => chatWindow.classList.add("chat-hidden"));
+  if (!toggleBtn || !chatWindow) return;
 
-// 4. Send Message Event
-sendBtn.addEventListener("click", handleSendMessage);
-chatInput.addEventListener("keypress", (e) => {
-  if (e.key === "Enter") handleSendMessage();
-});
+  // UI Handlers
+  toggleBtn.addEventListener("click", () => chatWindow.classList.toggle("chat-hidden"));
+  if (closeBtn) closeBtn.addEventListener("click", () => chatWindow.classList.add("chat-hidden"));
 
-async function handleSendMessage() {
-  const query = chatInput.value.trim();
-  if (!query) return;
+  if (sendBtn && chatInput) {
+    sendBtn.addEventListener("click", handleSendMessage);
+    chatInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") handleSendMessage();
+    });
+  }
 
-  // Render User Message
-  appendMessage(query, "user-message");
-  chatInput.value = "";
-
-  // Render Loading Indicator
-  const loadingMsg = appendMessage("চিন্তা করছি...", "bot-message");
-
-  // Fetch Data & Call API
-  const response = await fetchNoticeDataAndAskGemini(query);
-  
-  // Replace Loading with AI Response
-  loadingMsg.innerText = response;
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-}
-
-function appendMessage(text, className) {
-  const msgDiv = document.createElement("div");
-  msgDiv.className = `message ${className}`;
-  msgDiv.innerText = text;
-  messagesContainer.appendChild(msgDiv);
-  messagesContainer.scrollTop = messagesContainer.scrollHeight;
-  return msgDiv;
-}
-
-// 5. Get Cached Notices & Call Gemini API
-async function fetchNoticeDataAndAskGemini(userQuery) {
-  // আপনার ওয়েবসাইটের বিদ্যমান নোটিশ ডাটা অ্যারে সংগ্রহ (উদাহরণস্বরূপ window.cachedNotices)
-  const currentNotices = window.cachedNotices || []; 
-
-  const payload = {
-    system_instruction: {
-      parts: [{ text: SYSTEM_INSTRUCTION }]
-    },
-    contents: [
-      {
-        role: "user",
-        parts: [
-          { 
-            text: `বর্তমান নোটিশ লিস্ট:\n${JSON.stringify(currentNotices)}\n\nব্যবহারকারীর প্রশ্ন: ${userQuery}` 
-          }
-        ]
-      }
-    ]
+  // Quick Chips Handler (Exposed globally for HTML onclick)
+  window.quickAsk = function(text) {
+    if (chatInput && sendBtn) {
+      chatInput.value = text;
+      handleSendMessage();
+    }
   };
 
-  try {
-    const res = await fetch(API_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    });
+  async function handleSendMessage() {
+    const query = chatInput.value.trim();
+    if (!query) return;
 
-    const data = await res.json();
-    if (data.candidates && data.candidates[0].content.parts[0].text) {
-      return data.candidates[0].content.parts[0].text;
+    appendMessage(query, "user-message");
+    chatInput.value = "";
+
+    const loadingMsg = appendMessage("চিন্তা করছি...", "bot-message");
+
+    const response = await fetchNoticeDataAndAskGemini(query);
+    
+    // Process response text (Handle HTML formatting if bot returns links/formatting)
+    loadingMsg.querySelector('.msg-content').innerHTML = escapeHTML(response).replace(/\n/g, '<br>');
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+  }
+
+  function appendMessage(text, className) {
+    const msgDiv = document.createElement("div");
+    msgDiv.className = `message ${className}`;
+    
+    if (className === "bot-message") {
+      msgDiv.innerHTML = `
+        <i class="fa-solid fa-robot bot-icon-small"></i>
+        <div class="msg-content">${escapeHTML(text)}</div>
+      `;
+    } else {
+      msgDiv.innerText = text;
     }
-    return "দুঃখিত, উত্তর তৈরি করতে সমস্যা হয়েছে।";
-  } catch (error) {
-    console.error("Gemini API Error:", error);
-    return "নেটওয়ার্ক ত্রুটি! অনুগ্রহ করে আবার চেষ্টা করুন।";
+    
+    messagesContainer.appendChild(msgDiv);
+    messagesContainer.scrollTop = messagesContainer.scrollHeight;
+    return msgDiv;
+  }
+
+  async function fetchNoticeDataAndAskGemini(userQuery) {
+    // Uses the latest live masterDataset (Title, Department, Date, URL)
+    const sanitizedNoticeList = masterDataset.map(item => ({
+      title: item.title,
+      department: item.department,
+      date: item.date,
+      category: item.category,
+      url: item.url || item.pdf_url || item.link
+    }));
+
+    const payload = {
+      system_instruction: {
+        parts: [{ text: SYSTEM_INSTRUCTION }]
+      },
+      contents: [
+        {
+          role: "user",
+          parts: [
+            { 
+              text: `বর্তমান নোটিশ লিস্ট:\n${JSON.stringify(sanitizedNoticeList)}\n\nব্যবহারকারীর প্রশ্ন: ${userQuery}` 
+            }
+          ]
+        }
+      ]
+    };
+
+    try {
+      const res = await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await res.json();
+      if (data.candidates && data.candidates[0].content.parts[0].text) {
+        return data.candidates[0].content.parts[0].text;
+      }
+      return "দুঃখিত, উত্তর তৈরি করতে সমস্যা হয়েছে।";
+    } catch (error) {
+      console.error("Gemini API Error:", error);
+      return "নেটওয়ার্ক ত্রুটি! অনুগ্রহ করে আবার চেষ্টা করুন।";
+    }
   }
 }
