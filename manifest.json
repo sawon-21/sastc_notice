@@ -1,0 +1,21 @@
+{
+  "name": "SASTC Portal",
+  "short_name": "SASTC Portal",
+  "description": "SASTC Portal – HSTU Sync. Smart Notice Board for SASTC.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "https://i.ibb.co.com/7JnHCrB5/Chat-GPT-Image-Jul-29-2026-09-55-12-PM.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://i.ibb.co.com/7JnHCrB5/Chat-GPT-Image-Jul-29-2026-09-55-12-PM.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
