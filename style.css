@@ -69,7 +69,7 @@ header {
   font-weight: 500;
 }
 
-marquee {
+.marquee {
   margin: 8px 0;
   color: #000000;
   font-weight: 600;
