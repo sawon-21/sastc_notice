@@ -117,20 +117,62 @@ export function updateTabNotificationCounts(noticesData, resultsData, seenNotice
 }
 
 /**
- * Global Search & Filter Pipeline
+ * Fast & Accurate Relevance Search Engine
+ * - Searches strictly within loaded notices and results
+ * - Tokenizes query into words ("matches ANY word")
+ * - Sorts by relevance match count first, then date recency
  */
 export function getFilteredNotices(query, activeDept, noticesData, resultsData) {
   const normalizedQuery = normalizeSearchText(query);
-  const allCombined = deduplicateList([...noticesData, ...resultsData]);
 
-  if (normalizedQuery !== "") {
-    // GLOBAL SEARCH: Ignore active tab, search across ALL notices and ALL results
-    return sortNotices(allCombined.filter(item => {
-      const fullText = normalizeSearchText(`${item.title || ""} ${item.department || ""} ${item.category || ""} ${item.date || ""}`);
-      return fullText.includes(normalizedQuery);
-    }));
+  // Restore exact department tab filter if search is empty
+  if (!normalizedQuery) {
+    return sortNotices(getItemsForDept(activeDept, noticesData, resultsData));
   }
 
-  // TAB FILTER: Restore selected tab filter exactly when search is empty
-  return sortNotices(getItemsForDept(activeDept, noticesData, resultsData));
+  // Tokenize search string into non-empty words
+  const tokens = normalizedQuery.split(" ").filter(t => t.length > 0);
+
+  if (tokens.length === 0) {
+    return sortNotices(getItemsForDept(activeDept, noticesData, resultsData));
+  }
+
+  // Combine unique notices and results
+  const allItems = deduplicateList([...noticesData, ...resultsData]);
+  const scoredItems = [];
+
+  for (let i = 0; i < allItems.length; i++) {
+    const item = allItems[i];
+    const searchableText = normalizeSearchText(
+      `${item.title || ""} ${item.department || ""} ${item.category || ""} ${item.date || ""}`
+    );
+
+    let matchScore = 0;
+
+    // Fast token match & scoring
+    for (let j = 0; j < tokens.length; j++) {
+      if (searchableText.includes(tokens[j])) {
+        matchScore += 1;
+      }
+    }
+
+    // Include item if ANY word matches
+    if (matchScore > 0) {
+      scoredItems.push({
+        item,
+        score: matchScore,
+        dateMs: new Date(item.date || 0).getTime()
+      });
+    }
+  }
+
+  // Rank by highest relevance match count, then newest date
+  scoredItems.sort((a, b) => {
+    if (b.score !== a.score) {
+      return b.score - a.score;
+    }
+    return b.dateMs - a.dateMs;
+  });
+
+  return scoredItems.map(s => s.item);
 }
