@@ -5,12 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SASTC Portal</title>
 
- <meta name="theme-color" content="#ffffff" />
-<meta name="mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-capable" content="yes" />
-<meta name="apple-mobile-web-app-status-bar-style" content="default" />
-<meta name="apple-mobile-web-app-title" content="SASTC Portal" />
-<meta name="description" content="SASTC Portal – HSTU Sync. Smart Notice Board for SASTC." />
+  <!-- PWA Meta Tags -->
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="SASTC Portal" />
+  <meta name="description" content="SASTC Portal – HSTU Sync. Smart Notice Board for SASTC." />
   
   <!-- Embedded Web App Manifest for PWA Installability -->
   <link rel="manifest" href='data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22SASTC%20Portal%22%2C%22short_name%22%3A%22SASTC%20Portal%22%2C%22description%22%3A%22SASTC%20Portal%20%E2%80%93%20HSTU%20Sync.%20Smart%20Notice%20Board%20for%20SASTC.%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23ffffff%22%2C%22theme_color%22%3A%22%23ffffff%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22https%3A%2F%2Fi.ibb.co.com%2F7JnHCrB5%2FChat-GPT-Image-Jul-29-2026-09-55-12-PM.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%2C%7B%22src%22%3A%22https%3A%2F%2Fi.ibb.co.com%2F7JnHCrB5%2FChat-GPT-Image-Jul-29-2026-09-55-12-PM.png%22%2C%22sizes%22%3A%22512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D' />
@@ -261,6 +262,7 @@
       gap: 7px;
       transition: all 0.2s ease;
       box-shadow: var(--shadow-sm);
+      position: relative;
     }
 
     .dept-btn i {
@@ -282,6 +284,24 @@
 
     .dept-btn.active i {
       opacity: 1;
+    }
+
+    /* Unread Counter Badge for Tabs */
+    .unread-count {
+      background: #ef4444;
+      color: #ffffff;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 7px;
+      border-radius: 20px;
+      line-height: 1;
+      display: inline-block;
+      box-shadow: 0 2px 4px rgba(239, 68, 68, 0.3);
+    }
+
+    .dept-btn.active .unread-count {
+      background: #ffffff;
+      color: #dc2626;
     }
 
     .stats-bar {
@@ -663,11 +683,11 @@
         </div>
         <div>
           <h1>
-  SASTC Portal
-  <small style="font-size: 0.6em; color: #6b7280; font-weight: 500;">
-    – (HSTU Sync)
-  </small>
-</h1>     
+            SASTC Portal
+            <small style="font-size: 0.6em; color: #94a3b8; font-weight: 500;">
+              – (HSTU Sync)
+            </small>
+          </h1>     
           <p>
             Developed by 
             <a href="https://www.facebook.com/mehedialhasansawon" target="_blank" rel="noopener noreferrer">
@@ -676,14 +696,15 @@
           </p>
         </div>
       </div>
- <marquee
-  behavior="scroll"
-  direction="left"
-  scrollamount="5"
-  style="margin:8px 0; color:#ffffff; font-weight:600;"
->
-📢 HSTU-এর নোটিশ ও ফলাফলের সাথে সমন্বয় করে SASTC-এর জন্য কাস্টমাইজ করা এই পোর্টালে সর্বশেষ নোটিশ, পরীক্ষার সময়সূচি, ক্লাস রুটিন ও ফলাফল একসাথে পাবেন। 🚧 পোর্টালটির উন্নয়ন কাজ এখনও চলমান।
-</marquee>
+      <marquee
+        behavior="scroll"
+        direction="left"
+        scrollamount="5"
+        style="margin:8px 0; color:#ffffff; font-weight:600;"
+      >
+        📢 HSTU-এর নোটিশ ও ফলাফলের সাথে সমন্বয় করে SASTC-এর জন্য কাস্টমাইজ করা এই পোর্টালে সর্বশেষ নোটিশ, পরীক্ষার সময়সূচি, ক্লাস রুটিন ও ফলাফল একসাথে পাবেন। 🚧 পোর্টালটির উন্নয়ন কাজ এখনও চলমান।
+      </marquee>
+
       <!-- PWA Install Button -->
       <button type="button" id="installBtn" class="btn-install" style="display: none;">
         <i class="fa-solid fa-download"></i> Install App (805 KB)
@@ -695,7 +716,7 @@
     <!-- Offline Indicator Banner -->
     <div id="offlineBanner" class="offline-banner" style="display: none;">
       <i class="fa-solid fa-wifi"></i>
-      <span>Offline Mode </span>
+      <span>Offline Mode — Showing cached notices & routines</span>
     </div>
 
     <div class="controls">
@@ -718,18 +739,23 @@
     <div class="dept-tabs" id="deptTabs" aria-label="Department filters">
       <button type="button" class="dept-btn" data-dept="RESULT" aria-pressed="false">
         <i class="fa-solid fa-square-poll-vertical"></i> RESULT
+        <span class="unread-count" id="badge-RESULT" style="display:none;">0</span>
       </button>
       <button type="button" class="dept-btn" data-dept="SASTC" aria-pressed="false">
         <i class="fa-solid fa-microchip"></i> SASTC
+        <span class="unread-count" id="badge-SASTC" style="display:none;">0</span>
       </button>
       <button type="button" class="dept-btn" data-dept="CSE" aria-pressed="false">
         <i class="fa-solid fa-code"></i> CSE
+        <span class="unread-count" id="badge-CSE" style="display:none;">0</span>
       </button>
       <button type="button" class="dept-btn" data-dept="AG" aria-pressed="false">
         <i class="fa-solid fa-wheat-awn"></i> Agriculture
+        <span class="unread-count" id="badge-AG" style="display:none;">0</span>
       </button>
       <button type="button" class="dept-btn" data-dept="BBA" aria-pressed="false">
         <i class="fa-solid fa-chart-line"></i> BBA
+        <span class="unread-count" id="badge-BBA" style="display:none;">0</span>
       </button>
     </div>
 
@@ -781,6 +807,14 @@
     const LS_ACTIVE_DEPT = "sastc_active_dept";
     const LS_NOTICES_CACHE = "sastc_notices_cache";
     const LS_RESULTS_CACHE = "sastc_results_cache";
+    const LS_READ_NOTICES = "sastc_read_notices";
+
+    // Load read notices tracking
+    let readNoticeKeys = new Set();
+    try {
+      const storedRead = JSON.parse(localStorage.getItem(LS_READ_NOTICES) || "[]");
+      if (Array.isArray(storedRead)) readNoticeKeys = new Set(storedRead);
+    } catch (e) { readNoticeKeys = new Set(); }
 
     // Load initial state from LocalStorage or defaults
     let activeDept = localStorage.getItem(LS_ACTIVE_DEPT) || "SASTC";
@@ -806,11 +840,12 @@
     const deptButtons = document.querySelectorAll(".dept-btn");
     const offlineBanner = document.getElementById("offlineBanner");
 
-    /* Service Worker Registration (via Blob URL for pure Single-File PWA) */
+    /* Service Worker Registration for Full Offline Functionality */
     if ('serviceWorker' in navigator) {
       const swCode = `
-        const CACHE_NAME = 'sastc-notice-v3';
+        const CACHE_NAME = 'sastc-portal-v4';
         const ASSETS = [
+          './',
           'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap',
           'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'
         ];
@@ -831,6 +866,24 @@
 
         self.addEventListener('fetch', (e) => {
           if (e.request.method !== 'GET') return;
+          
+          // Navigation / HTML requests: Network first with Cache fallback
+          if (e.request.mode === 'navigate' || (e.request.headers.get('accept') || '').includes('text/html')) {
+            e.respondWith(
+              fetch(e.request).then(networkRes => {
+                if (networkRes && networkRes.status === 200) {
+                  const clone = networkRes.clone();
+                  caches.open(CACHE_NAME).then(c => c.put(e.request, clone));
+                }
+                return networkRes;
+              }).catch(() => {
+                return caches.match(e.request).then(cached => cached || caches.match('./'));
+              })
+            );
+            return;
+          }
+
+          // Asset & API Requests
           e.respondWith(
             caches.match(e.request).then(cached => {
               const fetchPromise = fetch(e.request).then(networkRes => {
@@ -902,22 +955,85 @@
         .toUpperCase();
     }
 
+    /*
+      FIXED Department Detection Function:
+      Priority rules prevent BBA Management from matching AG (MAN-AG-EMENT).
+    */
     function detectDeptCode(text) {
       const clean = normalizeText(text);
+
       if (clean.includes("SASTC")) return "SASTC";
-      if (clean.includes("CSE") || clean.includes("COMPUTER") || clean.includes("কম্পিউটার")) return "CSE";
       
-      // Exclude Ag. Engg. from AG
+      if (
+        clean.includes("CSE") || 
+        clean.includes("COMPUTER") || 
+        clean.includes("কম্পিউটার")
+      ) return "CSE";
+
+      // 1. Check BBA FIRST (including MANAGEMENT, BUSINESS, ACCOUNTING, etc.)
+      if (
+        clean.includes("BBA") || 
+        clean.includes("MANAGEMENT") || 
+        clean.includes("BUSINESS") || 
+        clean.includes("ACCOUNTING") || 
+        clean.includes("FINANCE") || 
+        clean.includes("MARKETING") || 
+        clean.includes("ব্যবসায়") || 
+        clean.includes("ব্যবস্থাপনা") || 
+        clean.includes("বিজনেস")
+      ) return "BBA";
+
+      // 2. Exclude Ag. Engg. from AG
       if (clean.includes("AG ENGG") || clean.includes("AGRICULTURAL ENG")) return "GENERAL";
-      if (clean.includes("AG") || clean.includes("AGRICULTUR") || clean.includes("কৃষি")) return "AG";
-      
-      if (clean.includes("BBA") || clean.includes("BUSINESS") || clean.includes("ব্যবসায়") || clean.includes("বিজনেস")) return "BBA";
+
+      // 3. Check AG with strict word boundary or explicit Agriculture terms (prevents "MANAGEMENT" matching)
+      if (
+        /\bAG\b/.test(clean) || 
+        /\bAGRICULTUR/.test(clean) || 
+        clean.includes("AGRICULTURE") || 
+        clean.includes("কৃষি")
+      ) return "AG";
+
       return "GENERAL";
     }
 
     function isResultNotice(item) {
       const fullText = `${item.category || ''} ${item.title || ''} ${item.department || ''}`.toLowerCase();
       return fullText.includes("result") || fullText.includes("ফলাফল") || (fullText.includes("পরীক্ষা") && fullText.includes("ফলাফল"));
+    }
+
+    /* 
+      FIXED "NEW" Badge Logic:
+      Show NEW badge ONLY for notices published within the last 7 days.
+    */
+    function isNoticeNew(dateStr) {
+      if (!dateStr || dateStr === "N/A") return false;
+      const noticeTime = new Date(dateStr).getTime();
+      if (isNaN(noticeTime)) return false;
+      
+      const nowTime = new Date().getTime();
+      const diffDays = (nowTime - noticeTime) / (1000 * 3600 * 24);
+      
+      return diffDays >= -0.5 && diffDays <= 7;
+    }
+
+    function getNoticeKey(item) {
+      const title = (item.title || "").trim();
+      const date = (item.date || "").trim();
+      const url = (item.url || item.pdf_url || item.link || item.pdf || item.result_url || "").trim();
+      return `${title}_${date}_${url}`;
+    }
+
+    function markNoticeAsRead(key) {
+      if (!key) return;
+      if (!readNoticeKeys.has(key)) {
+        readNoticeKeys.add(key);
+        try {
+          localStorage.setItem(LS_READ_NOTICES, JSON.stringify(Array.from(readNoticeKeys)));
+        } catch (e) {}
+        updateTabCounters();
+        renderNotices();
+      }
     }
 
     function getDeptIcon(dept) {
@@ -978,11 +1094,11 @@
       });
     }
 
-    function renderNotices() {
-      const query = searchInput.value.toLowerCase().trim();
+    /* Tab Notification Counters Calculation */
+    function getUnreadCountForDept(dept) {
       let targetList = [];
 
-      if (activeDept === "RESULT") {
+      if (dept === "RESULT") {
         const sastcResultsFromNotices = noticesData.filter(item => {
           const deptCode = detectDeptCode(`${item.department || ''} ${item.title || ''}`);
           return deptCode === "SASTC" && isResultNotice(item);
@@ -998,19 +1114,92 @@
       } else {
         const deptNotices = noticesData.filter(item => {
           const deptCode = detectDeptCode(`${item.department || ''} ${item.title || ''}`);
-          return deptCode === activeDept;
+          return deptCode === dept;
         });
         const deptResults = resultsData.filter(item => {
           const deptCode = detectDeptCode(`${item.department || ''} ${item.title || ''}`);
-          return deptCode === activeDept;
+          return deptCode === dept;
         });
         targetList = [...deptNotices, ...deptResults];
+      }
+
+      // Deduplicate & count unread new notices
+      const seen = new Set();
+      let unreadCount = 0;
+
+      targetList.forEach(item => {
+        const key = getNoticeKey(item);
+        if (!seen.has(key)) {
+          seen.add(key);
+          if (isNoticeNew(item.date) && !readNoticeKeys.has(key)) {
+            unreadCount++;
+          }
+        }
+      });
+
+      return unreadCount;
+    }
+
+    function updateTabCounters() {
+      const depts = ["RESULT", "SASTC", "CSE", "AG", "BBA"];
+      depts.forEach(dept => {
+        const badgeEl = document.getElementById(`badge-${dept}`);
+        if (badgeEl) {
+          const count = getUnreadCountForDept(dept);
+          if (count > 0) {
+            badgeEl.textContent = count;
+            badgeEl.style.display = "inline-block";
+          } else {
+            badgeEl.style.display = "none";
+          }
+        }
+      });
+    }
+
+    /*
+      FIXED Render Notices Function:
+      1. Global Infinite Search across ALL departments/results when search query is present.
+      2. Department tab filter when search query is empty.
+    */
+    function renderNotices() {
+      const query = searchInput.value.toLowerCase().trim();
+      let targetList = [];
+
+      if (query) {
+        // GLOBAL INFINITE SEARCH: Include ALL notices and results from ALL departments
+        targetList = [...resultsData, ...noticesData];
+      } else {
+        // TAB-SPECIFIC FILTERING
+        if (activeDept === "RESULT") {
+          const sastcResultsFromNotices = noticesData.filter(item => {
+            const deptCode = detectDeptCode(`${item.department || ''} ${item.title || ''}`);
+            return deptCode === "SASTC" && isResultNotice(item);
+          });
+
+          const sastcResultsFromApi = resultsData.filter(item => {
+            const text = `${item.department || ''} ${item.title || ''}`;
+            const deptCode = detectDeptCode(text);
+            return deptCode === "SASTC" || /\bSASTC\b/i.test(text);
+          });
+
+          targetList = [...sastcResultsFromApi, ...sastcResultsFromNotices];
+        } else {
+          const deptNotices = noticesData.filter(item => {
+            const deptCode = detectDeptCode(`${item.department || ''} ${item.title || ''}`);
+            return deptCode === activeDept;
+          });
+          const deptResults = resultsData.filter(item => {
+            const deptCode = detectDeptCode(`${item.department || ''} ${item.title || ''}`);
+            return deptCode === activeDept;
+          });
+          targetList = [...deptNotices, ...deptResults];
+        }
       }
 
       // Deduplicate items
       const seen = new Set();
       const uniqueList = targetList.filter(item => {
-        const key = `${item.title || ''}_${item.date || ''}_${item.url || item.pdf_url || item.link || ''}`;
+        const key = getNoticeKey(item);
         if (seen.has(key)) return false;
         seen.add(key);
         return true;
@@ -1025,6 +1214,7 @@
       });
 
       noticeCount.textContent = filtered.length;
+      updateTabCounters();
 
       if (filtered.length === 0) {
         noticeList.innerHTML = `
@@ -1036,12 +1226,14 @@
         return;
       }
 
-      noticeList.innerHTML = filtered.map((item, index) => {
+      noticeList.innerHTML = filtered.map((item) => {
         const deptCode = detectDeptCode(`${item.department || ''} ${item.title || ''}`);
-        const isResult = isResultNotice(item) || item.isResultApi || activeDept === "RESULT";
+        const isResult = isResultNotice(item) || item.isResultApi || (activeDept === "RESULT" && !query);
         const displayBadge = isResult ? "RESULT" : deptCode;
         const deptIcon = getDeptIcon(displayBadge);
-        const isNew = index < 2;
+        
+        // Exact 7-day NEW badge logic
+        const isNew = isNoticeNew(item.date);
 
         const rawLink = item.url || item.pdf_url || item.link || item.pdf || item.result_url || "#";
         const pdfUrl = formatPdfUrl(rawLink);
@@ -1050,6 +1242,7 @@
         const department = escapeHTML(item.department || "");
         const category = escapeHTML(item.category || (isResult ? "Result" : "General"));
         const date = escapeHTML(item.date || "N/A");
+        const noticeKey = escapeHTML(getNoticeKey(item));
 
         return `
           <div class="card">
@@ -1063,7 +1256,7 @@
               <span class="date"><i class="fa-regular fa-calendar"></i> ${date}</span>
             </div>
 
-            <a href="${pdfUrl || '#'}" class="notice-title" onclick="handleNoticeClick(event, '${pdfUrl}', '${escapeHTML(title)}')">
+            <a href="${pdfUrl || '#'}" class="notice-title" onclick="handleNoticeClick(event, '${pdfUrl}', '${escapeHTML(title)}', '${noticeKey}')">
               ${title}
             </a>
 
@@ -1075,7 +1268,7 @@
                 <button type="button" class="btn-share" onclick="copyLink('${pdfUrl}')" title="Copy Notice Link">
                   <i class="fa-regular fa-copy"></i>
                 </button>
-                <button type="button" class="btn-view" onclick="handlePdfView(event, '${pdfUrl}', '${escapeHTML(title)}')">
+                <button type="button" class="btn-view" onclick="handlePdfView(event, '${pdfUrl}', '${escapeHTML(title)}', '${noticeKey}')">
                   <span>View PDF</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
                 </button>
               </div>
@@ -1117,15 +1310,17 @@
       if (pdfFrame) pdfFrame.src = "about:blank";
     }
 
-    function handleNoticeClick(e, url, title) {
+    function handleNoticeClick(e, url, title, key) {
       if (e) e.preventDefault();
+      markNoticeAsRead(key);
       if (url && url !== "#") {
         openPdfModal(url, title);
       }
     }
 
-    function handlePdfView(e, url, title) {
+    function handlePdfView(e, url, title, key) {
       if (e) e.preventDefault();
+      markNoticeAsRead(key);
       if (url && url !== "#") {
         openPdfModal(url, title);
       } else {
@@ -1171,39 +1366,45 @@
       }, 2500);
     }
 
+    function getRecentDateStr(daysAgo) {
+      const d = new Date();
+      d.setDate(d.getDate() - daysAgo);
+      return d.toISOString().split('T')[0];
+    }
+
     function getFallbackNoticesData() {
       return [
         {
           "title": "SASTC Department Academic Class Routine and Exam Schedule 2026",
-          "date": "2026-03-28",
+          "date": getRecentDateStr(1),
           "department": "SASTC",
           "category": "Routine",
           "url": "https://hstu.ac.bd/uploads/notice/sastc_routine.pdf"
         },
         {
           "title": "CSE 3rd Year 1st Semester Final Examination Schedule Published",
-          "date": "2026-03-25",
+          "date": getRecentDateStr(3),
           "department": "Computer Science and Engineering (CSE)",
           "category": "Exam",
           "url": "https://hstu.ac.bd/uploads/notice/cse_exam.pdf"
         },
         {
+          "title": "BBA Management 2nd Semester Class Test Schedule Notice",
+          "date": getRecentDateStr(4),
+          "department": "Business Administration Management (BBA)",
+          "category": "Academic",
+          "url": "https://hstu.ac.bd/uploads/notice/bba_mgmt.pdf"
+        },
+        {
           "title": "SASTC Department Lab Test & Viva Voce Schedule Notice",
-          "date": "2026-03-22",
+          "date": getRecentDateStr(5),
           "department": "SASTC",
           "category": "Academic",
           "url": "https://hstu.ac.bd/uploads/notice/sastc_lab.pdf"
         },
         {
-          "title": "BBA Midterm Exam Routine and Seat Plan Announcement",
-          "date": "2026-03-20",
-          "department": "Business Administration (BBA)",
-          "category": "Exam",
-          "url": "https://hstu.ac.bd/uploads/notice/bba_mid.pdf"
-        },
-        {
           "title": "Faculty of Agriculture (AG) MS Thesis Submission Notice",
-          "date": "2026-03-18",
+          "date": getRecentDateStr(12),
           "department": "Faculty of Agriculture (AG)",
           "category": "Academic",
           "url": "https://hstu.ac.bd/uploads/notice/ag_thesis.pdf"
@@ -1215,7 +1416,7 @@
       return [
         {
           "title": "SASTC 2nd Year 2nd Semester Final Examination Result Published",
-          "date": "2026-03-27",
+          "date": getRecentDateStr(2),
           "department": "SASTC",
           "category": "Result",
           "url": "https://hstu.ac.bd/uploads/results/sastc_2_2_result.pdf",
@@ -1223,7 +1424,7 @@
         },
         {
           "title": "SASTC 1st Year 1st Semester Academic Result Announcement",
-          "date": "2026-03-21",
+          "date": getRecentDateStr(15),
           "department": "SASTC",
           "category": "Result",
           "url": "https://hstu.ac.bd/uploads/results/sastc_1_1_result.pdf",
