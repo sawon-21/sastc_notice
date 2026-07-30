@@ -45,15 +45,15 @@
           </p>
         </div>
       </div>
-      
+      <marquee behavior="scroll" direction="left" scrollamount="5" class="header-marquee">
+        📢 HSTU-এর নোটিশ ও ফলাফলের সাথে সমন্বয় করে SASTC-এর জন্য কাস্টমাইজ করা এই পোর্টালে সর্বশেষ নোটিশ, পরীক্ষার সময়সূচি, ক্লাস রুটিন ও ফলাফল একসাথে পাবেন। 🚧 পোর্টালটির উন্নয়ন কাজ এখনও চলমান।
+      </marquee>
       <button type="button" id="installBtn" class="btn-install" style="display: none;">
         <i class="fa-solid fa-download"></i> Install App
       </button>
     </div>
   </header>
-<marquee behavior="scroll" direction="left" scrollamount="5" class="header-marquee">
-        📢 HSTU-এর নোটিশ ও ফলাফলের সাথে সমন্বয় করে SASTC-এর জন্য কাস্টমাইজ করা এই পোর্টালে সর্বশেষ নোটিশ, পরীক্ষার সময়সূচি, ক্লাস রুটিন ও ফলাফল একসাথে পাবেন। 🚧 পোর্টালটির উন্নয়ন কাজ এখনও চলমান।
-      </marquee>
+
   <div class="container">
     <!-- Offline Indicator Banner -->
     <div id="offlineBanner" class="offline-banner" style="display: none;">
@@ -131,13 +131,14 @@
         <iframe id="pdfFrame" src="about:blank" title="PDF Notice Viewer"></iframe>
       </div>
       <div class="modal-footer">
-        <span class="modal-footer-text">Opening...</span>
+        <span class="modal-footer-text">Opening in embedded viewer</span>
         <a id="modalDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="btn-direct">
           <span>Open Full PDF</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
         </a>
       </div>
     </div>
   </div>
+
   <!-- Toast Notification -->
   <div id="toast" class="toast">
     <i id="toastIcon" class="fa-solid fa-circle-check"></i>
@@ -146,50 +147,5 @@
 
   <!-- Main ES6 Application Entry Point -->
   <script type="module" src="app.js"></script>
-
-
-<!-- AI Chatbot Floating Widget -->
-<div id="ai-chat-widget">
-  <!-- Toggle Button -->
-  <button id="chat-toggle-btn" type="button" aria-label="Open AI Assistant">
-    <i class="fa-solid fa-comments"></i>
-  </button>
-
-  <!-- Chat Window (Initial class: chat-hidden) -->
-  <div id="chat-window" class="chat-hidden">
-    <div class="chat-header">
-      <div class="chat-header-info">
-        <i class="fa-solid fa-robot"></i>
-        <div>
-          <strong>SASTC AI Assistant</strong>
-          <small>HSTU Sync</small>
-        </div>
-      </div>
-      <button type="button" id="chat-close-btn">&times;</button>
-    </div>
-
-    <div class="chat-quick-chips">
-      <button type="button" class="chip-btn" onclick="quickAsk('সর্বশেষ নোটিশ কোনটি?')">📢 নতুন নোটিশ</button>
-      <button type="button" class="chip-btn" onclick="quickAsk('পরীক্ষার রুটিন আছে?')">📝 রুটিন</button>
-    </div>
-
-    <div id="chat-messages">
-      <div class="message bot-message">
-        <div class="msg-content">
-          হ্যালো! 👋 আমি SASTC Portal-এর এআই অ্যাসিস্ট্যান্ট। বিশ্ববিদ্যালয়ের যেকোনো নোটিশ সম্পর্কে আমাকে প্রশ্ন করতে পারো।
-        </div>
-      </div>
-    </div>
-
-    <div class="chat-input-area">
-      <input type="text" id="chat-input" placeholder="প্রশ্ন টাইপ করুন..." />
-      <button type="button" id="chat-send-btn">
-        <i class="fa-solid fa-paper-plane"></i>
-      </button>
-    </div>
-  </div>
-</div>
-
-  
 </body>
 </html>
