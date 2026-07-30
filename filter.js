@@ -3,7 +3,6 @@
  */
 
 import { getNoticeDate, getNoticeKey, normalizeSearchText } from './utils.js';
-import { deduplicateList, sortNotices } from './api.js';
 
 export const ALLOWED_DEPTS = ["RESULT", "SASTC", "CSE", "AG", "BBA"];
 
@@ -46,10 +45,6 @@ export function isResultNotice(item) {
   return text.includes("result") || text.includes("ফলাফল");
 }
 
-/**
- * NEW Notice Logic:
- * Publish date within the last 7 days (diffDays >= 0 && diffDays <= 7)
- */
 export function isNoticeNew(item) {
   const d = getNoticeDate(item);
   if (!d) return false;
@@ -71,41 +66,73 @@ export function getDeptIcon(dept) {
 }
 
 /**
- * Department Filter Architecture
+ * Pre-indexes items ONCE when data is loaded/updated.
+ * Pre-computes key, dept code, result status, new status, timestamp, and searchable text.
  */
-export function getItemsForDept(dept, noticesData, resultsData) {
-  const combined = deduplicateList([...noticesData, ...resultsData]);
+export function indexDataset(noticesData, resultsData) {
+  const combined = [...noticesData, ...resultsData];
+  const seen = new Set();
+  const masterDataset = [];
 
-  if (dept === "RESULT") {
-    return combined.filter(item => {
-      if (!isResultNotice(item)) return false;
-      const text = `${item.department || ''} ${item.title || ''}`;
-      return detectDeptCode(text) === "SASTC";
+  for (let i = 0; i < combined.length; i++) {
+    const item = combined[i];
+    const key = item._key || getNoticeKey(item);
+
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const deptCode = item._deptCode || detectDeptCode(`${item.department || ''} ${item.title || ''}`);
+    const isResult = item._isResult !== undefined ? item._isResult : isResultNotice(item);
+    const searchableText = item._searchableText || normalizeSearchText(`${item.title || ""} ${item.department || ""} ${item.category || ""} ${item.date || ""}`);
+    const dateObj = getNoticeDate(item);
+    const dateMs = item._dateMs !== undefined ? item._dateMs : (dateObj ? dateObj.getTime() : 0);
+    const isNew = item._isNew !== undefined ? item._isNew : isNoticeNew(item);
+
+    masterDataset.push({
+      ...item,
+      _key: key,
+      _deptCode: deptCode,
+      _isResult: isResult,
+      _searchableText: searchableText,
+      _dateMs: dateMs,
+      _isNew: isNew
     });
   }
 
-  return combined.filter(item => {
-    if (isResultNotice(item)) return false;
-    const text = `${item.department || ''} ${item.title || ''}`;
-    return detectDeptCode(text) === dept;
-  });
+  // Pre-sort master dataset by dateMs descending
+  masterDataset.sort((a, b) => b._dateMs - a._dateMs);
+
+  return masterDataset;
 }
 
 /**
- * Notification Counter Logic
+ * Get pre-indexed items for a specific department
  */
-export function updateTabNotificationCounts(noticesData, resultsData, seenNoticeKeys) {
+export function getItemsForDept(dept, masterDataset) {
+  if (dept === "RESULT") {
+    return masterDataset.filter(item => item._isResult && item._deptCode === "SASTC");
+  }
+
+  return masterDataset.filter(item => !item._isResult && item._deptCode === dept);
+}
+
+/**
+ * Notification Counter Logic using pre-indexed master dataset
+ */
+export function updateTabNotificationCounts(masterDataset, seenNoticeKeys) {
   ALLOWED_DEPTS.forEach(dept => {
     const badgeEl = document.getElementById(`badge-${dept}`);
     if (!badgeEl) return;
 
-    const deptItems = getItemsForDept(dept, noticesData, resultsData);
+    const deptItems = getItemsForDept(dept, masterDataset);
 
-    const unreadCount = deptItems.filter(item => {
-      if (!isNoticeNew(item)) return false;
-      const key = getNoticeKey(item);
-      return !seenNoticeKeys.has(key);
-    }).length;
+    let unreadCount = 0;
+    for (let i = 0; i < deptItems.length; i++) {
+      const item = deptItems[i];
+      if (item._isNew && !seenNoticeKeys.has(item._key)) {
+        unreadCount++;
+      }
+    }
 
     if (unreadCount > 0) {
       badgeEl.textContent = unreadCount;
@@ -117,60 +144,49 @@ export function updateTabNotificationCounts(noticesData, resultsData, seenNotice
 }
 
 /**
- * Fast & Accurate Relevance Search Engine
- * - Searches strictly within loaded notices and results
- * - Tokenizes query into words ("matches ANY word")
- * - Sorts by relevance match count first, then date recency
+ * Fast & Smooth Search Engine using pre-indexed dataset
+ * - Reuses pre-computed _searchableText & _dateMs
+ * - Zero array merging or re-indexing during keypress
  */
-export function getFilteredNotices(query, activeDept, noticesData, resultsData) {
+export function getFilteredNotices(query, activeDept, masterDataset) {
   const normalizedQuery = normalizeSearchText(query);
 
-  // Restore exact department tab filter if search is empty
+  // Restore exact department items if search is empty
   if (!normalizedQuery) {
-    return sortNotices(getItemsForDept(activeDept, noticesData, resultsData));
+    return getItemsForDept(activeDept, masterDataset);
   }
 
-  // Tokenize search string into non-empty words
   const tokens = normalizedQuery.split(" ").filter(t => t.length > 0);
-
   if (tokens.length === 0) {
-    return sortNotices(getItemsForDept(activeDept, noticesData, resultsData));
+    return getItemsForDept(activeDept, masterDataset);
   }
 
-  // Combine unique notices and results
-  const allItems = deduplicateList([...noticesData, ...resultsData]);
+  const numTokens = tokens.length;
   const scoredItems = [];
 
-  for (let i = 0; i < allItems.length; i++) {
-    const item = allItems[i];
-    const searchableText = normalizeSearchText(
-      `${item.title || ""} ${item.department || ""} ${item.category || ""} ${item.date || ""}`
-    );
+  for (let i = 0; i < masterDataset.length; i++) {
+    const item = masterDataset[i];
+    const text = item._searchableText;
+    let score = 0;
 
-    let matchScore = 0;
-
-    // Fast token match & scoring
-    for (let j = 0; j < tokens.length; j++) {
-      if (searchableText.includes(tokens[j])) {
-        matchScore += 1;
+    for (let j = 0; j < numTokens; j++) {
+      if (text.includes(tokens[j])) {
+        score++;
       }
     }
 
-    // Include item if ANY word matches
-    if (matchScore > 0) {
+    if (score > 0) {
       scoredItems.push({
         item,
-        score: matchScore,
-        dateMs: new Date(item.date || 0).getTime()
+        score,
+        dateMs: item._dateMs
       });
     }
   }
 
-  // Rank by highest relevance match count, then newest date
+  // Rank by match score descending, then dateMs descending
   scoredItems.sort((a, b) => {
-    if (b.score !== a.score) {
-      return b.score - a.score;
-    }
+    if (b.score !== a.score) return b.score - a.score;
     return b.dateMs - a.dateMs;
   });
 
