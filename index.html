@@ -131,14 +131,42 @@
         <iframe id="pdfFrame" src="about:blank" title="PDF Notice Viewer"></iframe>
       </div>
       <div class="modal-footer">
-        <span class="modal-footer-text">Opening in embedded viewer</span>
+        <span class="modal-footer-text">Opening...</span>
         <a id="modalDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="btn-direct">
           <span>Open Full PDF</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
         </a>
       </div>
     </div>
   </div>
+<!-- Floating AI Chatbot Widget -->
+<div id="ai-chat-widget">
+  <!-- Chat Toggle Button -->
+  <button id="chat-toggle-btn" aria-label="Open Chat">
+    💬
+  </button>
 
+  <!-- Chat Window -->
+  <div id="chat-window" class="chat-hidden">
+    <div class="chat-header">
+      <div class="chat-title">
+        <span>🤖 SASTC AI Assistant</span>
+        <small>HSTU Sync</small>
+      </div>
+      <button id="chat-close-btn">&times;</button>
+    </div>
+
+    <div id="chat-messages">
+      <div class="message bot-message">
+        হ্যালো! আমি SASTC Portal-এর AI অ্যাসিস্ট্যান্ট। নোটিশ সংক্রান্ত যেকোনো প্রশ্ন করতে পারো।
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <input type="text" id="chat-input" placeholder="প্রশ্ন টাইপ করুন..." />
+      <button id="chat-send-btn">Send</button>
+    </div>
+  </div>
+</div>
   <!-- Toast Notification -->
   <div id="toast" class="toast">
     <i id="toastIcon" class="fa-solid fa-circle-check"></i>
