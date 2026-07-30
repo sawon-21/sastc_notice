@@ -4,9 +4,9 @@
 
 import { loadCachedData, fetchLiveData } from './api.js';
 import { 
+  indexDataset,
   detectDeptCode, 
   isResultNotice, 
-  isNoticeNew, 
   getDeptIcon, 
   getItemsForDept, 
   updateTabNotificationCounts, 
@@ -14,13 +14,13 @@ import {
 } from './filter.js';
 import { 
   escapeHTML, 
-  getNoticeKey, 
   formatPdfUrl, 
   openPdfModal, 
   closePdfModal, 
   copyLink, 
   handleNoticeClick, 
   handlePdfView, 
+  debounce,
   initSecurityProtections 
 } from './utils.js';
 
@@ -36,6 +36,7 @@ const LS_SEEN_KEYS = "sastc_seen_keys";
 let activeDept = localStorage.getItem(LS_ACTIVE_DEPT) || "SASTC";
 let noticesData = [];
 let resultsData = [];
+let masterDataset = [];
 let seenNoticeKeys = new Set();
 let deferredPrompt = null;
 
@@ -63,6 +64,9 @@ document.addEventListener("DOMContentLoaded", () => {
   noticesData = cached.noticesData;
   resultsData = cached.resultsData;
 
+  // Pre-index master dataset ONCE on startup
+  rebuildMasterDataset();
+
   // Initialize UI State
   initSecurityProtections();
   initEventListeners();
@@ -75,7 +79,8 @@ document.addEventListener("DOMContentLoaded", () => {
   fetchLiveData().then(live => {
     if (live.noticesData) noticesData = live.noticesData;
     if (live.resultsData) resultsData = live.resultsData;
-    updateTabNotificationCounts(noticesData, resultsData, seenNoticeKeys);
+    rebuildMasterDataset();
+    updateTabNotificationCounts(masterDataset, seenNoticeKeys);
     renderNotices();
   });
 
@@ -88,6 +93,13 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 });
+
+/**
+ * Rebuilds pre-indexed master dataset whenever noticesData or resultsData change
+ */
+function rebuildMasterDataset() {
+  masterDataset = indexDataset(noticesData, resultsData);
+}
 
 /**
  * Service Worker Registration
@@ -113,7 +125,8 @@ window.addEventListener("online", () => {
   fetchLiveData().then(live => {
     if (live.noticesData) noticesData = live.noticesData;
     if (live.resultsData) resultsData = live.resultsData;
-    updateTabNotificationCounts(noticesData, resultsData, seenNoticeKeys);
+    rebuildMasterDataset();
+    updateTabNotificationCounts(masterDataset, seenNoticeKeys);
     renderNotices();
   });
 });
@@ -127,10 +140,10 @@ function setDeptFilter(dept) {
   localStorage.setItem(LS_ACTIVE_DEPT, dept);
 
   // Mark all current NEW notices in this tab as seen
-  const deptItems = getItemsForDept(dept, noticesData, resultsData);
+  const deptItems = getItemsForDept(dept, masterDataset);
   deptItems.forEach(item => {
-    if (isNoticeNew(item)) {
-      seenNoticeKeys.add(getNoticeKey(item));
+    if (item._isNew) {
+      seenNoticeKeys.add(item._key);
     }
   });
   localStorage.setItem(LS_SEEN_KEYS, JSON.stringify(Array.from(seenNoticeKeys)));
@@ -141,7 +154,7 @@ function setDeptFilter(dept) {
     btn.setAttribute("aria-pressed", selected ? "true" : "false");
   });
 
-  updateTabNotificationCounts(noticesData, resultsData, seenNoticeKeys);
+  updateTabNotificationCounts(masterDataset, seenNoticeKeys);
   renderNotices();
 }
 
@@ -150,7 +163,7 @@ function setDeptFilter(dept) {
  */
 function renderNotices() {
   const query = searchInput ? searchInput.value : "";
-  const filtered = getFilteredNotices(query, activeDept, noticesData, resultsData);
+  const filtered = getFilteredNotices(query, activeDept, masterDataset);
 
   if (noticeCount) {
     noticeCount.textContent = filtered.length;
@@ -167,13 +180,11 @@ function renderNotices() {
   }
 
   noticeList.innerHTML = filtered.map((item) => {
-    const text = `${item.department || ''} ${item.title || ''}`;
-    const deptCode = detectDeptCode(text);
-    const isResult = isResultNotice(item);
-    const displayBadge = isResult ? "RESULT" : deptCode;
+    const isResult = item._isResult !== undefined ? item._isResult : isResultNotice(item);
+    const displayBadge = isResult ? "RESULT" : (item._deptCode || detectDeptCode(`${item.department || ''} ${item.title || ''}`));
     const deptIcon = getDeptIcon(displayBadge);
 
-    const isNewNotice = isNoticeNew(item);
+    const isNewNotice = item._isNew;
 
     const rawLink = item.url || item.pdf_url || item.link || item.pdf || item.result_url || "#";
     const pdfUrl = formatPdfUrl(rawLink);
@@ -226,13 +237,15 @@ function initEventListeners() {
     btn.addEventListener("click", () => setDeptFilter(btn.dataset.dept));
   });
 
-  // Search Input & Clear button
+  // Debounced Search Input Handler (180ms)
+  const debouncedRender = debounce(() => renderNotices(), 180);
+
   if (searchInput) {
     searchInput.addEventListener("input", () => {
       if (clearBtn) {
         clearBtn.style.display = searchInput.value.trim() ? "block" : "none";
       }
-      renderNotices();
+      debouncedRender();
     });
   }
 
