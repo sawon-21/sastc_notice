@@ -138,35 +138,59 @@
       </div>
     </div>
   </div>
-<!-- Floating AI Chatbot Widget -->
+
+
+<!-- Premium Floating AI Chatbot Widget -->
 <div id="ai-chat-widget">
-  <!-- Chat Toggle Button -->
-  <button id="chat-toggle-btn" aria-label="Open Chat">
-    💬
+  <!-- Premium Chat Toggle Button with Glow & Pulse -->
+  <button id="chat-toggle-btn" aria-label="Open AI Assistant">
+    <i class="fa-solid fa-wand-magic-sparkles"></i>
+    <span class="chat-badge-dot"></span>
   </button>
 
-  <!-- Chat Window -->
+  <!-- Responsive Chat Window -->
   <div id="chat-window" class="chat-hidden">
     <div class="chat-header">
-      <div class="chat-title">
-        <span>🤖 SASTC AI Assistant</span>
-        <small>HSTU Sync</small>
+      <div class="chat-header-info">
+        <div class="bot-avatar">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div class="chat-title">
+          <span>SASTC AI Assistant</span>
+          <small><i class="fa-solid fa-bolt"></i> Powered by Gemini AI</small>
+        </div>
       </div>
-      <button id="chat-close-btn">&times;</button>
+      <button id="chat-close-btn" aria-label="Close Chat">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
+    </div>
+
+    <!-- Quick Suggestion Chips -->
+    <div class="chat-quick-chips">
+      <button class="chip-btn" onclick="quickAsk('সর্বশেষ নোটিশ কোনটি?')">📢 নতুন নোটিশ</button>
+      <button class="chip-btn" onclick="quickAsk('পরীক্ষার রুটিন আছে?')">📝 রুটিন</button>
+      <button class="chip-btn" onclick="quickAsk('রেজাল্ট কীভাবে দেখবো?')">📊 রেজাল্ট</button>
     </div>
 
     <div id="chat-messages">
       <div class="message bot-message">
-        হ্যালো! আমি SASTC Portal-এর AI অ্যাসিস্ট্যান্ট। নোটিশ সংক্রান্ত যেকোনো প্রশ্ন করতে পারো।
+        <i class="fa-solid fa-robot bot-icon-small"></i>
+        <div class="msg-content">
+          হ্যালো! 👋 আমি SASTC Portal-এর এআই অ্যাসিস্ট্যান্ট। বিশ্ববিদ্যালয়ের যেকোনো নোটিশ বা আপডেট সম্পর্কে আমাকে জিজ্ঞেস করতে পারেন।
+        </div>
       </div>
     </div>
 
     <div class="chat-input-area">
-      <input type="text" id="chat-input" placeholder="প্রশ্ন টাইপ করুন..." />
-      <button id="chat-send-btn">Send</button>
+      <input type="text" id="chat-input" placeholder="আপনার প্রশ্নটি লিখুন..." />
+      <button id="chat-send-btn" aria-label="Send Message">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
     </div>
   </div>
 </div>
+
+  
   <!-- Toast Notification -->
   <div id="toast" class="toast">
     <i id="toastIcon" class="fa-solid fa-circle-check"></i>
