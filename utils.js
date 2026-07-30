@@ -21,7 +21,7 @@ export function normalizeSearchText(text) {
 }
 
 export function getNoticeKey(item) {
-  return `${item.title || ''}_${item.date || ''}_${item.url || item.pdf_url || item.link || ''}`;
+  return item._key || `${item.title || ''}_${item.date || ''}_${item.url || item.pdf_url || item.link || ''}`;
 }
 
 export function getNoticeDate(item) {
@@ -39,6 +39,21 @@ export function formatPdfUrl(rawLink) {
     url = "https://" + url;
   }
   return url;
+}
+
+/**
+ * Debounce helper for fast and smooth search input
+ */
+export function debounce(func, wait = 180) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
 }
 
 export function openPdfModal(url, title) {
