@@ -184,7 +184,8 @@ function renderNotices() {
     const displayBadge = isResult ? "RESULT" : (item._deptCode || detectDeptCode(`${item.department || ''} ${item.title || ''}`));
     const deptIcon = getDeptIcon(displayBadge);
 
-    const isNewNotice = item._isNew;
+    // FIX: Only show NEW badge if notice is new AND user hasn't seen it yet
+    const isNewNotice = item._isNew && !seenNoticeKeys.has(item._key);
 
     const rawLink = item.url || item.pdf_url || item.link || item.pdf || item.result_url || "#";
     const pdfUrl = formatPdfUrl(rawLink);
