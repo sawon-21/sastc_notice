@@ -86,7 +86,7 @@ export function indexDataset(noticesData, resultsData) {
     const searchableText = item._searchableText || normalizeSearchText(`${item.title || ""} ${item.department || ""} ${item.category || ""} ${item.date || ""}`);
     const dateObj = getNoticeDate(item);
     const dateMs = item._dateMs !== undefined ? item._dateMs : (dateObj ? dateObj.getTime() : 0);
-    const isNew = item._isNew !== undefined ? item._isNew : isNoticeNew(item);
+    const isNew = isNoticeNew(item);
 
     masterDataset.push({
       ...item,
