@@ -21,7 +21,8 @@ import {
   handleNoticeClick, 
   handlePdfView, 
   debounce,
-  initSecurityProtections 
+  initSecurityProtections,
+  getTagInfo
 } from './utils.js';
 
 // Global window bindings for inline HTML handlers
@@ -139,10 +140,11 @@ function setDeptFilter(dept) {
   activeDept = dept;
   localStorage.setItem(LS_ACTIVE_DEPT, dept);
 
-  // Mark all current NEW notices in this tab as seen
+  // Mark all current NEW notices (< 24 hrs) in this tab as seen
   const deptItems = getItemsForDept(dept, masterDataset);
   deptItems.forEach(item => {
-    if (item._isNew) {
+    const tag = getTagInfo(item.date);
+    if (tag && tag.className === "tag-new") {
       seenNoticeKeys.add(item._key);
     }
   });
@@ -184,8 +186,22 @@ function renderNotices() {
     const displayBadge = isResult ? "RESULT" : (item._deptCode || detectDeptCode(`${item.department || ''} ${item.title || ''}`));
     const deptIcon = getDeptIcon(displayBadge);
 
-    // FIX: Only show NEW badge if notice is new AND user hasn't seen it yet
-    const isNewNotice = item._isNew && !seenNoticeKeys.has(item._key);
+    // Dynamic Tag Calculation
+    const tagInfo = getTagInfo(item.date);
+    let tagHtml = "";
+    let isUnseenNew = false;
+
+    if (tagInfo) {
+      if (tagInfo.className === "tag-new") {
+        isUnseenNew = !seenNoticeKeys.has(item._key);
+        if (isUnseenNew) {
+          tagHtml = `<span class="badge-tag tag-new"><i class="fa-solid fa-bolt"></i> NEW</span>`;
+        }
+      } else {
+        // Displays "1 day ago", "2 days ago", or "3 days ago"
+        tagHtml = `<span class="badge-tag tag-recent"><i class="fa-regular fa-clock"></i> ${tagInfo.text}</span>`;
+      }
+    }
 
     const rawLink = item.url || item.pdf_url || item.link || item.pdf || item.result_url || "#";
     const pdfUrl = formatPdfUrl(rawLink);
@@ -196,13 +212,13 @@ function renderNotices() {
     const date = escapeHTML(item.date || "N/A");
 
     return `
-      <div class="card ${isNewNotice ? 'card-new' : ''}">
+      <div class="card ${isUnseenNew ? 'card-new' : ''}">
         <div class="card-header">
           <div class="badges">
             <span class="badge-dept ${displayBadge}">
               <i class="${deptIcon}"></i> ${displayBadge}
             </span>
-            ${isNewNotice ? '<span class="badge-new"><i class="fa-solid fa-bolt"></i> NEW</span>' : ''}
+            ${tagHtml}
           </div>
           <span class="date"><i class="fa-regular fa-calendar"></i> ${date}</span>
         </div>
