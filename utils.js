@@ -172,3 +172,52 @@ export function initSecurityProtections() {
     }
   });
 }
+
+/**
+ * Calculates and returns tag text and CSS class based on creation timestamp.
+ * @param {string|number|Date} dateInput - Created date/timestamp
+ * @returns {{ text: string, className: string } | null}
+ */
+export function getTagInfo(dateInput) {
+  if (!dateInput) return null;
+
+  const createdDate = new Date(dateInput);
+  const now = new Date();
+  const diffInMs = now - createdDate;
+
+  // Invalid date or future date check
+  if (isNaN(createdDate.getTime()) || diffInMs < 0) return null;
+
+  const diffInHours = diffInMs / (1000 * 60 * 60);
+
+  // Less than 24 hours -> NEW Tag
+  if (diffInHours < 24) {
+    return { text: 'NEW', className: 'tag-new' };
+  }
+
+  // Calculate full days passed
+  const diffInDays = Math.floor(diffInHours / 24);
+
+  // 1 to 3 days ago
+  if (diffInDays >= 1 && diffInDays <= 3) {
+    const label = `${diffInDays} ${diffInDays === 1 ? 'day' : 'days'} ago`;
+    return { text: label, className: 'tag-recent' };
+  }
+
+  // Older than 3 days -> No Tag
+  return null;
+}
+
+/**
+ * Helper to format standard dates
+ */
+export function formatDate(dateInput) {
+  if (!dateInput) return "";
+  const d = new Date(dateInput);
+  if (isNaN(d.getTime())) return "";
+  return d.toLocaleDateString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+}
