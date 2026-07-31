@@ -51,7 +51,7 @@ export function isNoticeNew(item) {
   const now = new Date();
   const diffMs = now.getTime() - d.getTime();
   const diffDays = diffMs / (1000 * 60 * 60 * 24);
-  return diffDays >= 0 && diffDays <= 3;
+  return diffDays >= 0 && diffDays <= 1;
 }
 
 export function getDeptIcon(dept) {
