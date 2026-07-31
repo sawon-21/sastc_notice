@@ -39,6 +39,7 @@ input, textarea {
   user-select: text;
 }
 
+/* Header Section */
 header {
   background: linear-gradient(135deg, #0b1329 0%, #1e293b 100%);
   color: #ffffff;
@@ -147,6 +148,7 @@ header {
   box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
 }
 
+/* Layout Container */
 .container {
   max-width: 920px;
   margin: 0 auto;
@@ -168,6 +170,7 @@ header {
   box-shadow: var(--shadow-sm);
 }
 
+/* Controls & Search */
 .controls {
   margin-bottom: 16px;
 }
@@ -220,6 +223,7 @@ header {
   color: var(--text-main);
 }
 
+/* Department Tabs */
 .dept-tabs {
   display: flex;
   gap: 8px;
@@ -282,6 +286,7 @@ header {
   color: var(--primary);
 }
 
+/* Stats Bar */
 .stats-bar {
   display: flex;
   align-items: center;
@@ -312,35 +317,37 @@ header {
   gap: 14px;
 }
 
+/* Card Component & Background Highlights */
 .card {
-  background: var(--card-bg);
+  background-color: var(--card-bg);
   border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  box-shadow: var(--shadow-sm);
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.card.card-new {
-  background-color: #f0f9ff;
-  border-color: #bae6fd;
+  gap: 10px;
 }
 
 .card:hover {
-  border-color: #cbd5e1;
   transform: translateY(-2px);
   box-shadow: var(--shadow-hover);
 }
 
+/* Unseen/Fresh Card Highlight */
+.card.card-new {
+  border-left: 4px solid #ef4444;
+  background-color: #fff8f8;
+}
+
 .card-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
-  gap: 8px;
+  align-items: center;
   flex-wrap: wrap;
+  gap: 8px;
 }
 
 .badges {
@@ -350,6 +357,7 @@ header {
   flex-wrap: wrap;
 }
 
+/* Department Badge Styles */
 .badge-dept {
   font-size: 11px;
   font-weight: 700;
@@ -369,19 +377,36 @@ header {
 .badge-dept.RESULT { background: #fdf2f8; color: #be185d; border: 1px solid #fbcfe8; }
 .badge-dept.GENERAL { background: #f1f5f9; color: #475569; border: 1px solid #cbd5e1; }
 
-.badge-new {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 20px;
+/* Tag Badges Logic Styling */
+.badge-tag {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border-radius: 20px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  line-height: 1;
 }
 
+/* NEW Tag (< 24 hours) */
+.badge-tag.tag-new, .badge-new {
+  background-color: #ef4444;
+  color: #ffffff;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+  border: none;
+}
+
+/* Relative Time Tag (1 to 3 days ago) */
+.badge-tag.tag-recent {
+  background-color: #f1f5f9;
+  color: #475569;
+  border: 1px solid #cbd5e1;
+}
+
+/* Date Indicator */
 .date {
   font-size: 12px;
   color: var(--text-muted);
@@ -391,6 +416,7 @@ header {
   gap: 6px;
 }
 
+/* Notice Titles & Links */
 .notice-title {
   font-size: 16px;
   font-weight: 600;
@@ -406,6 +432,7 @@ header {
   color: var(--primary);
 }
 
+/* Card Footer & Action Buttons */
 .card-footer {
   display: flex;
   align-items: center;
@@ -469,6 +496,7 @@ header {
   color: #0f172a;
 }
 
+/* Empty State & Loader */
 .state-box {
   text-align: center;
   padding: 48px 20px;
@@ -642,6 +670,7 @@ header {
   opacity: 1;
 }
 
+/* Mobile Responsive Tweaks */
 @media (max-width: 640px) {
   .header-content {
     align-items: flex-start;
