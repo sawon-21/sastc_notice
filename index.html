@@ -1,287 +1,151 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="bn">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SASTC Admin Control Center</title>
+  <title>SASTC Portal</title>
 
-  <!-- Google Fonts -->
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="SASTC Portal" />
+  <meta name="description" content="SASTC Portal – HSTU Sync. Smart Notice Board for SASTC." />
+  
+  <link rel="manifest" href="manifest.json" />
+  <link rel="apple-touch-icon" href="https://i.ibb.co.com/7JnHCrB5/Chat-GPT-Image-Jul-29-2026-09-55-12-PM.png" />
+
+  <!-- Google Fonts & Font Awesome -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-
-  <!-- Bootstrap 5 CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  
-  <!-- Font Awesome 6 Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- Custom CSS (Bento Grid Theme) -->
-  <link rel="stylesheet" href="style.css">
+  <!-- Stylesheet -->
+  <link rel="stylesheet" href="style.css" />
 </head>
-<body>
 
-  <!-- Navbar -->
-  <header class="navbar navbar-expand-lg bento-header sticky-top py-3">
-    <div class="container-fluid px-4 px-lg-5">
-      <a class="navbar-brand d-flex align-items-center gap-3 m-0" href="#">
-        <div class="icon-box-sm icon-box-primary text-white bg-primary shadow-sm">
-          <i class="fa-solid fa-shield-halved"></i>
+<body>
+  <header>
+    <div class="header-content">
+      <div class="title-area">
+        <div class="logo-icon">
+          <img src="https://i.ibb.co.com/7JnHCrB5/Chat-GPT-Image-Jul-29-2026-09-55-12-PM.png" alt="SASTC Logo" class="logo-img" id="logoImg">
         </div>
         <div>
-          <span class="fs-5 d-block lh-1 fw-black text-dark tracking-tight">SASTC Admin</span>
-          <small class="text-muted fw-bold text-uppercase" style="font-size: 0.625rem; letter-spacing: 0.1em;">Institutional Portal</small>
+          <h1>
+            SASTC Portal
+            <small class="subtitle-sync">– (HSTU Sync)</small>
+          </h1>     
+          <p>
+            Developed by 
+            <a href="https://www.facebook.com/mehedialhasansawon" target="_blank" rel="noopener noreferrer">
+              <i class="fa-brands fa-facebook"></i> Mehedi Al Hasan Sawon
+            </a>
+          </p>
         </div>
-      </a>
+      </div>
+      
+      <button type="button" id="installBtn" class="btn-install" style="display: none;">
+        <i class="fa-solid fa-download"></i> Install App
+      </button>
+    </div>
+  </header>
+<marquee behavior="scroll" direction="left" scrollamount="5" class="marquee">
+        📢 HSTU-এর নোটিশ ও ফলাফলের সাথে সমন্বয় করে SASTC-এর জন্য কাস্টমাইজ করা এই পোর্টালে সর্বশেষ নোটিশ, পরীক্ষার সময়সূচি, ক্লাস রুটিন ও ফলাফল একসাথে পাবেন। 🚧 পোর্টালটির উন্নয়ন কাজ এখনও চলমান।
+      </marquee>
+  <div class="container">
+    <!-- Offline Indicator Banner -->
+    <div id="offlineBanner" class="offline-banner" style="display: none;">
+      <i class="fa-solid fa-wifi"></i>
+      <span>Offline Mode — Displaying cached notices</span>
+    </div>
 
-      <!-- Authenticated User Profile -->
-      <div id="userInfoArea" class="d-flex align-items-center gap-4 hidden">
-        <div class="d-flex align-items-center gap-3">
-          <div class="d-none d-sm-block text-end">
-            <div id="userEmail" class="fw-bold text-dark lh-sm fs-7"></div>
-            <div class="text-success fw-bold text-uppercase mt-1" style="font-size: 0.625rem; letter-spacing: 0.05em;">System Root</div>
-          </div>
-          <div class="position-relative">
-             <img id="userAvatar" src="" alt="Avatar" class="rounded-3 border" width="40" height="40" style="object-fit: cover;">
-             <span class="position-absolute bottom-0 start-100 translate-middle p-1 bg-success border border-light rounded-circle"></span>
-          </div>
-        </div>
-        <button id="logoutBtn" class="btn text-secondary hover-danger p-2 fs-5">
-          <i class="fa-solid fa-right-from-bracket"></i>
+    <div class="controls">
+      <div class="search-wrapper" role="search" aria-label="Search notices">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input
+          type="text"
+          id="searchInput"
+          class="search-input"
+          placeholder="Search notices across all departments..."
+          aria-label="Search notices by title, department, category, or date"
+        >
+        <button type="button" id="clearBtn" class="clear-btn" aria-label="Clear search">
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
     </div>
-  </header>
 
-  <!-- Main Container -->
-  <main class="container-fluid px-4 px-lg-5 py-4">
+    <!-- Department Navigation Tabs -->
+    <div class="dept-tabs" id="deptTabs" aria-label="Department filters">
+      <button type="button" class="dept-btn" data-dept="RESULT" aria-pressed="false">
+        <i class="fa-solid fa-square-poll-vertical"></i>
+        <span class="tab-label">RESULT</span>
+        <span class="tab-count" id="badge-RESULT" style="display:none;">0</span>
+      </button>
+      <button type="button" class="dept-btn" data-dept="SASTC" aria-pressed="false">
+        <i class="fa-solid fa-microchip"></i>
+        <span class="tab-label">SASTC</span>
+        <span class="tab-count" id="badge-SASTC" style="display:none;">0</span>
+      </button>
+      <button type="button" class="dept-btn" data-dept="CSE" aria-pressed="false">
+        <i class="fa-solid fa-code"></i>
+        <span class="tab-label">CSE</span>
+        <span class="tab-count" id="badge-CSE" style="display:none;">0</span>
+      </button>
+      <button type="button" class="dept-btn" data-dept="AG" aria-pressed="false">
+        <i class="fa-solid fa-wheat-awn"></i>
+        <span class="tab-label">Agriculture</span>
+        <span class="tab-count" id="badge-AG" style="display:none;">0</span>
+      </button>
+      <button type="button" class="dept-btn" data-dept="BBA" aria-pressed="false">
+        <i class="fa-solid fa-chart-line"></i>
+        <span class="tab-label">BBA</span>
+        <span class="tab-count" id="badge-BBA" style="display:none;">0</span>
+      </button>
+    </div>
 
-    <!-- 1. AUTHENTICATION SECTION (GOOGLE LOGIN) -->
-    <section id="loginSection" class="row justify-content-center my-5">
-      <div class="col-12 col-sm-10 col-md-6 col-lg-5 col-xl-4">
-        <div class="bento-card p-5 text-center">
-          <div class="mb-4 d-flex justify-content-center">
-            <div class="icon-box icon-box-primary">
-              <i class="fa-solid fa-lock"></i>
-            </div>
-          </div>
-          <h2 class="h4 fw-black text-dark mb-2">Admin Sign In</h2>
-          <p class="text-muted fs-7 mb-4">Log in with your whitelisted Google account to manage campus notices.</p>
+    <div class="stats-bar">
+      <span><i class="fa-regular fa-file-lines"></i> Showing: <strong id="noticeCount">0</strong></span>
+    </div>
 
-          <div id="loginAlert" class="alert alert-danger fs-7 text-start mb-4 hidden bento-alert" role="alert"></div>
-
-          <button id="googleLoginBtn" class="btn btn-white w-100 py-3 fw-bold d-flex align-items-center justify-content-center gap-2 shadow-sm">
-            <svg width="20" height="20" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-              <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-              <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
-              <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
-            </svg>
-            <span>Sign in with Google</span>
-          </button>
-        </div>
+    <div id="noticeList" class="notice-list" aria-live="polite">
+      <div class="state-box">
+        <i class="fa-solid fa-circle-notch spinner"></i>
+        <span>Loading notices...</span>
       </div>
-    </section>
+    </div>
+  </div>
 
-    <!-- 2. ACCESS DENIED SECTION -->
-    <section id="unauthorizedSection" class="row justify-content-center my-5 hidden">
-      <div class="col-12 col-sm-10 col-md-6 col-lg-5 col-xl-4 text-center">
-        <div class="bento-card p-5">
-          <div class="mb-4 d-flex justify-content-center">
-             <div class="icon-box bg-danger bg-opacity-10 text-danger">
-               <i class="fa-solid fa-circle-xmark"></i>
-             </div>
-          </div>
-          <h2 class="h4 fw-black text-danger mb-2">Access Denied</h2>
-          <p class="text-muted fs-7 mb-4">Your Google account is not whitelisted for admin privileges.</p>
-          <button id="unauthLogoutBtn" class="btn btn-bento-primary w-100 py-3 d-flex align-items-center justify-content-center gap-2">
-            <i class="fa-solid fa-arrow-left"></i> Switch Account
-          </button>
-        </div>
+  <!-- PDF Preview Modal -->
+  <div id="pdfModal" class="modal-overlay" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <span id="modalNoticeTitle" class="modal-title">Notice Document</span>
+        <button type="button" class="modal-close" id="closeModalBtn" aria-label="Close preview">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
-    </section>
-
-    <!-- 3. MAIN DASHBOARD SECTION -->
-    <section id="dashboardSection" class="row g-4 hidden">
-
-      <!-- Left Column: Compose Form (Span 4 on lg) -->
-      <div class="col-12 col-lg-4 d-flex">
-        <div class="bento-card p-4 d-flex flex-column w-100">
-          <div class="text-center mb-4">
-            <div class="d-inline-flex icon-box icon-box-primary mb-3">
-              <i class="fa-solid fa-pen-to-square"></i>
-            </div>
-            <h3 class="h5 fw-bold text-dark mb-1">Compose Notice</h3>
-            <p class="text-muted fs-7 mb-0">Broadcasting to campus displays</p>
-          </div>
-
-          <div id="publishAlert" class="alert alert-danger fs-7 mb-3 hidden bento-alert" role="alert"></div>
-
-          <form id="noticeForm" class="d-flex flex-column gap-3 flex-grow-1">
-            
-            <!-- Title -->
-            <div>
-              <label for="noticeTitle" class="form-label text-muted fw-bold text-uppercase mb-1" style="font-size: 0.6875rem;">Notice Title</label>
-              <input type="text" class="form-control bento-input" id="noticeTitle" placeholder="e.g. Annual Sports Week 2024" required>
-            </div>
-
-            <!-- Dept & Category Row -->
-            <div class="row g-2">
-              <div class="col-6">
-                <label for="noticeDept" class="form-label text-muted fw-bold text-uppercase mb-1" style="font-size: 0.6875rem;">Dept.</label>
-                <select class="form-select bento-input" id="noticeDept" required>
-                  <option value="SASTC">SASTC</option>
-                  <option value="CSE">CSE</option>
-                  <option value="AG">AG</option>
-                  <option value="BBA">BBA</option>
-                  <option value="RESULT">RESULT</option>
-                </select>
-              </div>
-              <div class="col-6">
-                <label for="noticeCategory" class="form-label text-muted fw-bold text-uppercase mb-1" style="font-size: 0.6875rem;">Category</label>
-                <select class="form-select bento-input" id="noticeCategory">
-                  <option value="General">General</option>
-                  <option value="Exam">Exam & Routine</option>
-                  <option value="Event">Event & Contest</option>
-                  <option value="Result">Result</option>
-                </select>
-              </div>
-            </div>
-
-            <!-- Date -->
-            <div>
-              <label for="noticeDate" class="form-label text-muted fw-bold text-uppercase mb-1" style="font-size: 0.6875rem;">Date</label>
-              <input type="date" class="form-control bento-input" id="noticeDate" required>
-            </div>
-
-            <!-- Description -->
-            <div class="flex-grow-1 d-flex flex-column">
-              <label for="noticeDescription" class="form-label text-muted fw-bold text-uppercase mb-1" style="font-size: 0.6875rem;">Description</label>
-              <textarea class="form-control bento-input flex-grow-1" id="noticeDescription" rows="4" placeholder="Detailed information here..." style="resize: none;" required></textarea>
-            </div>
-
-            <!-- PDF Link -->
-            <div>
-              <label for="pdfUrl" class="form-label text-muted fw-bold text-uppercase mb-1" style="font-size: 0.6875rem;">PDF/Cloud Link</label>
-              <div class="input-group">
-                <span class="input-group-text bento-input-group">
-                  <i class="fa-solid fa-link text-danger"></i>
-                </span>
-                <input type="url" class="form-control bento-input rounded-start-0 border-start-0 px-2" id="pdfUrl" placeholder="https://drive.google.com/...">
-              </div>
-            </div>
-
-            <!-- Submit Button -->
-            <div class="pt-2 mt-auto">
-              <button type="submit" id="publishBtn" class="btn btn-bento-primary w-100">
-                Publish Broadcast
-              </button>
-            </div>
-          </form>
-        </div>
+      <div class="modal-body">
+        <iframe id="pdfFrame" src="about:blank" title="PDF Notice Viewer"></iframe>
       </div>
-
-      <!-- Right Column: Stats & Table (Span 8 on lg) -->
-      <div class="col-12 col-lg-8 d-flex flex-column gap-4">
-        
-        <!-- Stats Row -->
-        <div class="row g-4 d-none d-md-flex">
-          <div class="col-4">
-            <div class="bento-card p-3 p-xl-4 d-flex align-items-center gap-3">
-              <div class="icon-box icon-box-success flex-shrink-0">
-                <i class="fa-solid fa-bolt"></i>
-              </div>
-              <div>
-                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.625rem; letter-spacing: 0.1em;">Active</p>
-                <h4 class="fw-black text-dark mb-0 lh-1">128</h4>
-              </div>
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="bento-card p-3 p-xl-4 d-flex align-items-center gap-3">
-              <div class="icon-box icon-box-info flex-shrink-0">
-                <i class="fa-solid fa-globe"></i>
-              </div>
-              <div>
-                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.625rem; letter-spacing: 0.1em;">Reach</p>
-                <h4 class="fw-black text-dark mb-0 lh-1">1.2k</h4>
-              </div>
-            </div>
-          </div>
-          <div class="col-4">
-            <div class="bento-card p-3 p-xl-4 d-flex align-items-center gap-3">
-              <div class="icon-box icon-box-warning flex-shrink-0">
-                <i class="fa-regular fa-calendar-check"></i>
-              </div>
-              <div>
-                <p class="text-muted fw-bold text-uppercase mb-0" style="font-size: 0.625rem; letter-spacing: 0.1em;">Scheduled</p>
-                <h4 class="fw-black text-dark mb-0 lh-1">05</h4>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Table Card -->
-        <div class="bento-card d-flex flex-column flex-grow-1 overflow-hidden bg-white">
-          
-          <!-- Table Header / Search -->
-          <div class="p-4 border-bottom d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3">
-            <div class="d-flex align-items-center gap-2">
-              <h3 class="h6 fw-black text-dark mb-0">Published Stream</h3>
-              <span class="badge bg-light text-secondary rounded-pill border fs-8 px-2 py-1">Latest 50</span>
-            </div>
-
-            <!-- Search -->
-            <div class="input-group" style="max-width: 250px;">
-              <span class="input-group-text bento-input-group-search bg-light text-muted">
-                <i class="fa-solid fa-magnifying-glass"></i>
-              </span>
-              <input type="text" id="tableSearchInput" class="form-control bento-search fs-7" placeholder="Filter stream...">
-            </div>
-          </div>
-
-          <!-- Table Content -->
-          <div class="table-container flex-grow-1">
-            <table class="table align-middle mb-0 text-start">
-              <thead>
-                <tr>
-                  <th scope="col" class="border-0">Timeline</th>
-                  <th scope="col" class="border-0" style="min-width: 250px;">Headline & Detail</th>
-                  <th scope="col" class="border-0 text-center">Department</th>
-                  <th scope="col" class="border-0 text-center">Category</th>
-                  <th scope="col" class="border-0 text-center">Attachment</th>
-                  <th scope="col" class="border-0 text-end">Control</th>
-                </tr>
-              </thead>
-              <tbody id="recentNoticesBody" class="border-top-0">
-                <tr>
-                  <td colspan="6" class="text-center text-muted py-5">
-                    <i class="fa-solid fa-spinner fa-spin me-2"></i> Loading published notices...
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Table Footer -->
-          <div class="p-3 bg-light bg-opacity-50 border-top d-flex justify-content-between align-items-center">
-            <div class="d-flex gap-2 align-items-center">
-              <span class="spinner-grow spinner-grow-sm text-success" role="status" aria-hidden="true" style="width: 8px; height: 8px;"></span>
-              <span class="text-muted fw-bold text-uppercase" style="font-size: 0.625rem; letter-spacing: 0.1em;">System Sync Active</span>
-            </div>
-            <span class="text-muted fw-medium" style="font-size: 0.625rem;">Server Node: AP-SOUTH-1 • Version 2.4.0</span>
-          </div>
-
-        </div>
+      <div class="modal-footer">
+        <span class="modal-footer-text">Opening in embedded viewer</span>
+        <a id="modalDirectLink" href="#" target="_blank" rel="noopener noreferrer" class="btn-direct">
+          <span>Open Full PDF</span> <i class="fa-solid fa-arrow-up-right-from-square"></i>
+        </a>
       </div>
+    </div>
+  </div>
 
-    </section>
-  </main>
+  <!-- Toast Notification -->
+  <div id="toast" class="toast">
+    <i id="toastIcon" class="fa-solid fa-circle-check"></i>
+    <span id="toastMsg">Link copied to clipboard</span>
+  </div>
 
-  <!-- Bootstrap 5 Bundle JS -->
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-
-  <!-- Firebase Script (Type Module) -->
-  <script type="module" src="script.js"></script>
+  <!-- Main ES6 Application Entry Point -->
+  <script type="module" src="app.js"></script>
 </body>
 </html>
